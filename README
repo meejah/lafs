@@ -1,0 +1,35 @@
+LAFS
+====
+
+Prototyping a "porcelain only" (in Git terminology) CLI for Tahoe-LAFS.
+
+The "tahoe" tool that's in the Tahoe-LAFS repository is a mix of
+plumbing and porcelain commands.
+
+This repository consists of *only* porcelain / user-facing
+commands. It SHOULD use "tahoe *" commands under the hood.
+
+Magic Setup
+-----------
+
+Two commands co-operate to form a user-flow for setting up a
+client after getting some JSON configuration via magic-wormhole or
+just on the command-line.
+
+1. Serve the JSON::
+
+   echo "{}" | lafs serve_config --json -
+
+This prints out a magic-wormhole code on stdout, and then waits for the other end to receive it before exiting.
+
+So, for example, a web-service could provide a "join this Tahoe grid" button. Pushing it would cause the above to be executed, and the wormhole code to be displayed to the user. They then use the command below to complete the configuration.
+
+2. Set up a node::
+
+   lafs setup
+   lafs setup --code <wormhole code>
+   lafs setup --json path/to/setup.json
+
+These either get json directly (the last one) or ask for (or have via command-line) a magic-wormhole code which is used to receive JSON from the "other side".
+
+
