@@ -1,7 +1,10 @@
 from __future__ import print_function
+import sys
 import json
 
 from twisted.internet.defer import inlineCallbacks, Deferred, returnValue
+from twisted.internet.error import ProcessExitedAlready, ProcessDone
+from twisted.internet.protocol import ProcessProtocol
 
 import wormhole
 import wormhole.xfer_util
@@ -18,11 +21,62 @@ def config_from_wormhole(reactor, code):
     returnValue(json)
 
 
+class _DumpOutputProtocol(ProcessProtocol):
+    """
+    Internal helper.
+    """
+    def __init__(self, f):
+        self.done = Deferred()
+        self._out = f if f is not None else sys.stdout
+
+    def processEnded(self, reason):
+        if not self.done.called:
+            self.done.callback(None)
+
+    def processExited(self, reason):
+        if not isinstance(reason.value, ProcessDone):
+            self.done.errback(reason)
+
+    def outReceived(self, data):
+        self._out.write(data)
+
+    def errReceived(self, data):
+        self._out.write(data)
+
+
 @inlineCallbacks
-def setup(reactor, cfg):
+def setup(reactor, node_dir, cfg):
     print("Setting up")
-    print(cfg)
-    yield
+    proto = _DumpOutputProtocol(None)
+    reactor.spawnProcess(
+        proto,
+        sys.executable,
+        (
+            sys.executable, '-m', 'allmydata.scripts.runner',
+            'create-node',
+            '--nickname', cfg['nickname'],
+            '--introducer', cfg['introducer'],
+            '--listen', 'none',
+            '--no-storage',
+            '--webport', 'tcp:7777:interface=127.0.0.1',  # FIXME meejah testing
+            node_dir,
+        )
+    )
+    yield proto.done
+
+    print("Running")
+    # XXX FIXME on Windows, "tahoe start" runs in the foreground! :(
+    proto = _DumpOutputProtocol(None)
+    reactor.spawnProcess(
+        proto,
+        sys.executable,
+        (
+            sys.executable, '-m', 'allmydata.scripts.runner',
+            'start',
+            node_dir,
+        )
+    )
+    yield proto.done
 
 
 @inlineCallbacks

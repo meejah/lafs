@@ -24,12 +24,18 @@ def lafs():
     required=False,
     default=None,
 )
+@click.option(
+    '-p', '--path',
+    help="Where to create the new Tahoe node",
+    type=click.Path(exists=False),
+    prompt="Non-existant directory for new Tahoe node",
+)
 @click.argument(
     'activation_code',
     "Provide an activate-code",
     required=False,
 )
-def setup(json_file, activation_code):
+def setup(json_file, activation_code, path):
     """
     Set up a new node
     """
@@ -54,7 +60,8 @@ def setup(json_file, activation_code):
                 )
             
             cfg = yield command_setup.config_from_wormhole(reactor, code)
-        yield command_setup.setup(reactor, cfg)
+            cfg = json.loads(cfg)
+        yield command_setup.setup(reactor, path, cfg)
     react(main, (cfg_json, activation_code))
 
 

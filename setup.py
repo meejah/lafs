@@ -34,7 +34,9 @@ setup(
     install_requires=[
         'click',
         'twisted',
-        'wormhole',
+        #'wormhole',
+        #'-e https://github.com/warner/magic-wormhole/archive/master.zip#egg=magic-wormhole',
+        #'-e git+https://github.com/warner/magic-wormhole.git',
     ],
     entry_points={
         'console_scripts': [
