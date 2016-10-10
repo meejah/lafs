@@ -10,7 +10,7 @@ import wormhole
 import wormhole.xfer_util
 
 
-appid = u"testing some stuff"
+appid = u"meejah.ca/lafs"
 relay = u"ws://wormhole-relay.lothar.com:4000/v1"
 
 @inlineCallbacks
@@ -47,6 +47,10 @@ class _DumpOutputProtocol(ProcessProtocol):
 @inlineCallbacks
 def setup(reactor, node_dir, cfg):
     print("Setting up")
+
+    # XXX should check if 3456 is already taken, and if so allocate a
+    # random port for the webport.
+
     proto = _DumpOutputProtocol(None)
     reactor.spawnProcess(
         proto,
@@ -58,7 +62,7 @@ def setup(reactor, node_dir, cfg):
             '--introducer', cfg['introducer'],
             '--listen', 'none',
             '--no-storage',
-            '--webport', 'tcp:7777:interface=127.0.0.1',  # FIXME meejah testing
+            '--webport', 'tcp:7778:interface=127.0.0.1',  # FIXME meejah testing
             node_dir,
         )
     )
