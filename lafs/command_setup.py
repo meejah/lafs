@@ -9,15 +9,17 @@ from twisted.internet.protocol import ProcessProtocol
 import wormhole
 import wormhole.xfer_util
 
+import click
+
 
 appid = u"meejah.ca/lafs"
 relay = u"ws://wormhole-relay.lothar.com:4000/v1"
 
 @inlineCallbacks
 def config_from_wormhole(reactor, code):
-    print("Converting '{}' to JSON via wormhole".format(code))
+    click.echo("Converting '{}' to JSON via wormhole".format(code))
     json = yield wormhole.xfer_util.receive(reactor, appid, relay, code)
-    print("JSON", json)
+    click.echo("Received {} bytes.".format(len(json)))
     returnValue(json)
 
 
@@ -46,11 +48,18 @@ class _DumpOutputProtocol(ProcessProtocol):
 
 @inlineCallbacks
 def setup(reactor, node_dir, cfg):
-    print("Setting up")
+    click.echo("Setting up new node:")
+    click.echo("  nicknake: {config[nickname]}".format(config=cfg))
+    click.echo("  shares configuration:")
+    click.echo("    needed: {config[needed]}".format(config=cfg))
+    click.echo("     total: {config[total]}".format(config=cfg))
+    click.echo("     happy: {config[happy]}".format(config=cfg))
 
     # XXX should check if 3456 is already taken, and if so allocate a
     # random port for the webport.
 
+    # XXX need to set the needed/happy/total shares options
+    # (preferably via command-line)
     proto = _DumpOutputProtocol(None)
     reactor.spawnProcess(
         proto,
@@ -63,12 +72,15 @@ def setup(reactor, node_dir, cfg):
             '--listen', 'none',
             '--no-storage',
             '--webport', 'tcp:7778:interface=127.0.0.1',  # FIXME meejah testing
+            '--needed', config['needed'],
+            '--total', config['total'],
+            '--happy', config['happy'],
             node_dir,
         )
     )
     yield proto.done
 
-    print("Running")
+    print("Running the new node")
     # XXX FIXME on Windows, "tahoe start" runs in the foreground! :(
     proto = _DumpOutputProtocol(None)
     reactor.spawnProcess(

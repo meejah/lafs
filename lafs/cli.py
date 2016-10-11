@@ -47,8 +47,7 @@ def setup(json_file, activation_code, path):
             "Please enter an activation code:"
         )
         if not activation_code.strip():
-            click.echo(
-            )
+            click.echo("No code found")
             raise click.Abort()
 
     @inlineCallbacks
