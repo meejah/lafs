@@ -72,9 +72,9 @@ def setup(reactor, node_dir, cfg):
             '--listen', 'none',
             '--no-storage',
             '--webport', 'tcp:7778:interface=127.0.0.1',  # FIXME meejah testing
-            '--needed', config['needed'],
-            '--total', config['total'],
-            '--happy', config['happy'],
+            '--needed', cfg['needed'],
+            '--total', cfg['total'],
+            '--happy', cfg['happy'],
             node_dir,
         )
     )
